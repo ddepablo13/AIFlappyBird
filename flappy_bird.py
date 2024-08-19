@@ -21,7 +21,8 @@ pygame.display.set_caption("Flappy Bird")
 
 """
 Loads and scales the bird sprite images used in the Flappy Bird game.
-The `BIRDS_IMGS` list contains three scaled-up versions of the bird sprite images, which are used to represent the different frames of the bird's animation.
+The `BIRDS_IMGS` list contains three scaled-up versions of the bird sprite images,
+which are used to represent the different frames of the bird's animation.
 """
 BIRD_SPRITES = ["sprite1.png", "sprite2.png", "sprite3.png"]
 BIRDS_IMGS = [pygame.transform.scale2x(pygame.image.load(os.path.join("assets", sprite)))
@@ -35,6 +36,7 @@ Generation of Flappy Birds
 '''
 GEN = 0
 
+
 class Flappy:
     """
     Represents a bird in the Flappy Bird game.
@@ -45,6 +47,10 @@ class Flappy:
     ANITIME = 5
     
     def __init__(self, x, y):
+        '''
+        sets up the initial state of the bird, including its 
+        position, velocity, and appearance.
+        '''
         self.x, self.y = x, y
         self.tilt = self.tick_count = self.vel = self.img_count = self.height = 0
         self.height = y
@@ -52,7 +58,8 @@ class Flappy:
 
     def jump(self):
         """
-        Makes the bird jump by setting its velocity to a negative value.
+        makes the bird jump by setting its velocity to a negative value, 
+        which causes it to move upwards.
         """
         # Set the bird's velocity to a negative value to make it jump
         self.vel = -10.5
@@ -63,7 +70,8 @@ class Flappy:
 
     def move(self):
         """
-        Moves the bird by updating its position based on its velocity and rotation.
+        updates the bird's position based on its current velocity and applies 
+        gravity-like effects to simulate realistic movement.        
         """
         self.tick_count += 1
         
@@ -89,9 +97,8 @@ class Flappy:
                        
     def draw(self, win):
         """
-        Draws the bird on the game window.
-        Args:
-            win (pygame.Surface): The game window surface.
+        handles the visual representation of the bird, 
+        including animation and rotation effects.
         """
         self.img_count += 1
         
@@ -134,6 +141,22 @@ class Pipe:
     VEL = 5
     
     def __init__(self, x):
+        """
+        Initializes a new Pipe object.
+            Args:
+            x (int): The initial x-coordinate of the pipe.
+            
+        Attributes:
+            x (int): The current x-coordinate of the pipe.
+            height (int): The height of the pipe.
+            top (int): The y-coordinate of the top of the pipe.
+            bot (int): The y-coordinate of the bottom of the pipe.
+            TPIPE (pygame.Surface): The image of the top part of the pipe.
+            BPIPE (pygame.Surface): The image of the bottom part of the pipe.
+            passed (bool): Whether the bird has passed through the pipe.
+        Methods:
+            set_height(): Sets the height of the pipe randomly.
+        """
         self.x = x
         self.height = 0
         
@@ -171,6 +194,14 @@ class Pipe:
 
     def collide(self, flappy, win):
         """
+        Checks if the bird has collided with the pipe.
+        
+        Args:
+            flappy (Bird): The bird object.
+            win (pygame.Surface): The game window surface.
+        
+        Returns:
+            bool: True if the bird has collided with the pipe, False otherwise.
         """
         flappy_mask = flappy.get_mask()
         top_mask = pygame.mask.from_surface(self.TPIPE)
@@ -188,7 +219,10 @@ class Pipe:
     
 class Floor:
     """
-    Represents the base in the Flappy Bird game.
+    Represents the floor of the game window, which scrolls horizontally to create the illusion of movement.
+    
+    The `Floor` class is responsible for managing the position and drawing of the floor image on the game window. 
+    It uses two copies of the floor image, which are moved horizontally to create a continuous scrolling effect.
     """
     VEL = 5
     WIDTH = FLOOR_IMG.get_width()
@@ -240,8 +274,17 @@ def blitRotateCenter(surf, image, topleft, angle):
     
 def draw_window(win, flappys, pipes, floor, score, gen, indpipe):
     """
-    """
+    Draws the game window, including the flappy birds, pipes, floor, score, and generation information.
     
+    Args:
+        win (pygame.Surface): The game window surface to draw on.
+        flappys (list): A list of Flappy objects representing the birds in the game.
+        pipes (list): A list of Pipe objects representing the pipes in the game.
+        floor (Floor): The floor object.
+        score (int): The current score of the game.
+        gen (int): The current generation of the game.
+        indpipe (int): The index of the current pipe that the flappy birds are approaching.
+    """
     #Flappy generation
     if gen == 0:
         gen = 1
@@ -288,6 +331,21 @@ def draw_window(win, flappys, pipes, floor, score, gen, indpipe):
     
 
 def fitness(genomes, config):
+    """
+    Evaluates the fitness of a population of Flappy Bird agents using a NEAT neural network.
+    
+    This function is the main loop of the Flappy Bird game simulation. 
+    It creates a population of Flappy Bird agents, each controlled by a NEAT neural network. 
+    The agents are evaluated based on their ability to navigate through the pipes, 
+    with the goal of maximizing their score. 
+    The function updates the agents' positions, checks for collisions, and adds new pipes as the game progresses. 
+    The fitness of each agent is updated based on their score, and the function continues to 
+    run until all agents have died or a high enough score is achieved.
+    
+    Args:
+        genomes (list): A list of NEAT genome objects, each representing an individual agent.
+        config (neat.Config): The NEAT configuration object.
+    """
     global WIN, GEN
     GEN += 1
     nets = []
@@ -380,6 +438,13 @@ def fitness(genomes, config):
             break
 
 def run(config_path):
+    """
+    Runs the NEAT algorithm to evolve a population of agents to play the Flappy Bird game.
+    
+    The function loads the NEAT configuration from the specified path, creates a NEAT population, 
+    adds reporters to display progress, and runs the NEAT algorithm for up to 50 generations, 
+    using the `fitness` function to evaluate the agents. The winning genome is then displayed.
+    """
     # Load configuration.
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
                                 neat.DefaultSpeciesSet, neat.DefaultStagnation,
@@ -400,6 +465,9 @@ def run(config_path):
     print('\nBest genome:\n{!s}'.format(winner))
 
 if __name__ == "__main__":
+    """
+    Runs the NEAT algorithm to evolve a population of agents to play the Flappy Bird game.
+    """
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-NEAT.txt')
     run(config_path)
